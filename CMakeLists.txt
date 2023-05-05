@@ -3,4 +3,5 @@ project(Practica4)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(Practica4 src/main.cpp src/bt.cpp)
+add_executable(Backtracking src/bt.cpp)
+add_executable(Generador src/generador.cpp)
