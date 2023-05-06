@@ -12,6 +12,56 @@ int Minimo(const vector<vector<int>>& distancias, const vector<bool> & v, int po
 
 }
 
+int SalidaMinima (const vector<int>& fila, const int NUM_NODOS){
+    int indice_min = (fila[0] == -1) ? 1 : 0;
+
+    for (int i = indice_min+1; i < NUM_NODOS; ++i){
+        //cout <<
+        if (fila[i] != -1){   // Si no es la diagonal
+            if (fila[i] < fila[indice_min]){  // Nuevo minimo
+                indice_min = i;
+            }
+        }
+    }
+
+    return (indice_min);
+
+}
+
+pair<vector<int>, int> Greedy (const vector<vector<int>>& distancias, vector<bool> ya_pertenece, const int NUM_NODOS){
+    vector<int> visita;
+
+    visita.push_back(0);  // la empresa está en 0
+    int pos_actual = 0;   // posicion en la que estamos
+
+    int indice_minimo = 1;   // para calcular la siguiente posicion
+    int min_dist = distancias[pos_actual][indice_minimo];
+
+    int distancia_solucion = 0;
+
+    while (visita.size() < NUM_NODOS){
+        min_dist = 500;
+        for (int i = 1; i < NUM_NODOS; ++i){
+            int num = distancias[pos_actual][i];
+
+            if((!ya_pertenece[i]) && (num < min_dist) && (i != pos_actual)){
+                min_dist = num;
+                indice_minimo = i;
+            }
+        }
+        distancia_solucion += min_dist;
+
+        pos_actual = indice_minimo;
+        visita.push_back(pos_actual);
+        ya_pertenece[pos_actual] = true;
+    }
+
+    distancia_solucion += distancias[visita.at(visita.size()-1)][visita.at(0)];
+
+    return (pair<vector<int>,int>(visita, distancia_solucion));
+
+}
+
 // https://code-with-me.global.jetbrains.com/ZU3t2oYIEaHkkUu93N6O4A#p=CL&fp=CB515FAE1B2D2DAA042E8BA8B33919512C260C42B173BA51B3B9384B16885C49
 
 // Video Indio:
@@ -33,10 +83,10 @@ int main (int argc, char * argv []) {
         exit(-1);
     }
 
-    int aux;
-    file >> aux;
+    int nodos_aux;
+    file >> nodos_aux;
 
-    const int NUM_NODOS = aux;
+    const int NUM_NODOS = nodos_aux;
 
     vector<vector<int>> distancias (NUM_NODOS);
     for (int i = 0; i < NUM_NODOS; ++i){
@@ -65,6 +115,76 @@ int main (int argc, char * argv []) {
         }
         cout << endl;
     }
+
+    vector<int> salidas_minimas;
+
+    for (int i = 0; i < NUM_NODOS; ++i){
+        salidas_minimas.push_back(SalidaMinima(distancias[i], NUM_NODOS));
+    }
+
+
+    // MOSTRAR SALIDAS MINIMAS
+    cout << "SALIDAS MINIMAS:\t";
+    for (int i = 0; i < NUM_NODOS; ++i){
+        cout << salidas_minimas.at(i) << "\t";
+    }
+    cout << endl;
+
+
+    // ------------- ALGORITMO GREEDY ------------- //
+    pair<vector<int>, int> sol_greedy = Greedy(distancias, ya_pertenece, NUM_NODOS);
+
+    int cota_global = sol_greedy.second;
+
+    /*
+    for (auto it = sol_greedy.first.begin(); it != sol_greedy.first.end(); ++it){
+        cout << *it << "\t";
+    }
+    cout << endl;
+     */
+
+    cout << "COTA GLOBAL INICIAL:\t"<< cota_global << endl;
+
+
+
+    // ------------- BACKTRACKING ------------- //
+    vector<int> solucion;
+
+    vector<int> solucion_aux;
+    solucion_aux.push_back(0);
+    ya_pertenece[0] = true;
+
+    int nodo_actual = 1;
+    solucion_aux.push_back(nodo_actual);
+    ya_pertenece[1] = true;
+
+    int cota_local = 0;
+    int num_soluciones = solucion_aux.size()-1;
+
+    // Sumamos las distancias de los nodos ya elegidos
+    for (int i = 0; i < num_soluciones; ++i){
+        cota_local += distancias[solucion_aux.at(i)][solucion_aux.at(i+1)];
+    }
+
+    // Coste mínimo de las salidas de cada nodo
+    cota_local += salidas_minimas[nodo_actual]; //Salir del nodo actual
+    for (int i = 1; i < NUM_NODOS; ++i){        // Salir del resto de nodos
+        if (!ya_pertenece[i]){
+            cota_local += salidas_minimas[i];
+        }
+    }
+    cout << "COTA LOCAL DEL NODO:\t" << cota_local << endl;
+
+    for (int i = 1; i < NUM_NODOS; ++i){
+        bool factible = true;
+        int nodo = i;
+
+        while (factible) {
+
+        }
+    }
+
+
 
     return (0);
 }
