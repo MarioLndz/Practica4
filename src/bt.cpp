@@ -7,27 +7,6 @@
 
 using namespace std;
 
-int Minimo(const vector<vector<int>>& distancias, const vector<bool> & v, int pos){
-
-
-}
-
-int SalidaMinima (const vector<int>& fila, const int NUM_NODOS){
-    int indice_min = (fila[0] == -1) ? 1 : 0;
-
-    for (int i = indice_min+1; i < NUM_NODOS; ++i){
-        //cout <<
-        if (fila[i] != -1){   // Si no es la diagonal
-            if (fila[i] < fila[indice_min]){  // Nuevo minimo
-                indice_min = i;
-            }
-        }
-    }
-
-    return (indice_min);
-
-}
-
 pair<vector<int>, int> Greedy (const vector<vector<int>>& distancias, vector<bool> ya_pertenece, const int NUM_NODOS){
     vector<int> visita;
 
@@ -62,6 +41,129 @@ pair<vector<int>, int> Greedy (const vector<vector<int>>& distancias, vector<boo
 
 }
 
+class BT{
+private:
+    int NUM_NODOS;
+    vector<bool> ya_pertenece;
+
+    vector<vector<int>> distancias;
+    vector<int> solucion;
+
+    int COTA_GLOBAL;
+
+    vector<int> salidas_minimas;
+
+public:
+    BT (){
+        NUM_NODOS = 0;
+        COTA_GLOBAL = 0;
+    }
+
+    BT (const char filename []){
+        load(filename);
+    }
+
+    void load (const char filename[]){
+        ifstream file;
+        file.open(filename);
+
+        if (!file){
+            cout << "ERROR ABRIENDO EL ARCHIVO" << endl;
+            exit(-1);
+        }
+
+        int nodos_aux;
+        file >> nodos_aux;
+
+        NUM_NODOS = nodos_aux;
+
+        reservaMemoria(NUM_NODOS);
+
+        for (int i = 0; i < NUM_NODOS; ++i) {
+            for (int j = 0; j < NUM_NODOS; ++j) {
+                int num;
+                file >> num;
+
+                distancias[i][j] = num;
+            }
+        }
+
+        file.close();
+
+        // Siempre partimos de la ciudad 0
+        ya_pertenece.at(0) = true;
+        solucion.push_back(0);
+
+        CalculaSalidasMinimas();
+
+        pair<vector<int>, int> sol_greedy = Greedy (distancias, ya_pertenece, NUM_NODOS);
+        COTA_GLOBAL = sol_greedy.second;
+
+    }
+
+    int GetSize (){
+        return (NUM_NODOS);
+    }
+
+    int GetCotaGlobal () {
+        return (COTA_GLOBAL);
+    }
+
+    void PintaDistancias () const {
+        cout << "MATRIZ DE DISTANCIAS:\t";
+        for (int i = 0; i < NUM_NODOS; ++i){
+            for (int j = 0; j < NUM_NODOS; ++j){
+                cout << distancias[i][j] << "\t";
+            }
+            cout << endl;
+        }
+    }
+
+    void PintaSalidasMinimas () const {
+        cout << "SALIDAS MINIMAS:\t";
+        for (int i = 0; i < NUM_NODOS; ++i){
+            cout << salidas_minimas.at(i) << "\t";
+        }
+        cout << endl;
+    }
+
+    void IniciaComp (int k){
+
+    }
+
+private:
+    void reservaMemoria (const int & nodos){
+        distancias.resize(nodos);
+        ya_pertenece.resize(nodos);
+
+        for (int i = 0; i < nodos; ++i){
+            distancias[i].resize(nodos);
+            ya_pertenece.at(i) = false;
+        }
+    }
+
+    int SalidaMinima (const vector<int>& fila, const int NUM_NODOS){
+        int indice_min = (fila[0] == -1) ? 1 : 0;
+
+        for (int i = indice_min+1; i < NUM_NODOS; ++i){
+            //cout <<
+            if (fila[i] != -1){   // Si no es la diagonal
+                if (fila[i] < fila[indice_min]){  // Nuevo minimo
+                    indice_min = i;
+                }
+            }
+        }
+
+        return (indice_min);
+
+    }
+
+    void CalculaSalidasMinimas (){
+        for (int i = 0; i < NUM_NODOS; ++i){
+            salidas_minimas.push_back(SalidaMinima(distancias[i], NUM_NODOS));
+        }
+    }
+};
 // https://code-with-me.global.jetbrains.com/ZU3t2oYIEaHkkUu93N6O4A#p=CL&fp=CB515FAE1B2D2DAA042E8BA8B33919512C260C42B173BA51B3B9384B16885C49
 
 // Video Indio:
@@ -107,34 +209,24 @@ int main (int argc, char * argv []) {
 
     file.close();
 
-    ya_pertenece[0]=true; // marco el primer nodo como visitado, pues empezamos desde ahí
+    BT backtracking (argv[1]);
 
+    ya_pertenece[0]=true; // marco el primer nodo como visitado, pues empezamos desde ahí
+    /*
     for (int i = 0; i < NUM_NODOS; ++i){
         for (int j = 0; j < NUM_NODOS; ++j){
             cout << distancias[i][j] << "\t";
         }
         cout << endl;
-    }
-
-    vector<int> salidas_minimas;
-
-    for (int i = 0; i < NUM_NODOS; ++i){
-        salidas_minimas.push_back(SalidaMinima(distancias[i], NUM_NODOS));
-    }
-
-
-    // MOSTRAR SALIDAS MINIMAS
-    cout << "SALIDAS MINIMAS:\t";
-    for (int i = 0; i < NUM_NODOS; ++i){
-        cout << salidas_minimas.at(i) << "\t";
-    }
-    cout << endl;
-
+    }*/
+    backtracking.PintaDistancias();
+    backtracking.PintaSalidasMinimas();
+    cout << "COTA GLOBAL INICIAL (GREEDY):\t" << backtracking.GetCotaGlobal() << endl;
 
     // ------------- ALGORITMO GREEDY ------------- //
-    pair<vector<int>, int> sol_greedy = Greedy(distancias, ya_pertenece, NUM_NODOS);
+    //pair<vector<int>, int> sol_greedy = Greedy(distancias, ya_pertenece, NUM_NODOS);
 
-    int cota_global = sol_greedy.second;
+    //int cota_global = sol_greedy.second;
 
     /*
     for (auto it = sol_greedy.first.begin(); it != sol_greedy.first.end(); ++it){
@@ -143,10 +235,10 @@ int main (int argc, char * argv []) {
     cout << endl;
      */
 
-    cout << "COTA GLOBAL INICIAL:\t"<< cota_global << endl;
+    //cout << "COTA GLOBAL INICIAL:\t"<< cota_global << endl;
 
 
-
+    /*
     // ------------- BACKTRACKING ------------- //
     vector<int> solucion;
 
@@ -174,7 +266,7 @@ int main (int argc, char * argv []) {
         }
     }
     cout << "COTA LOCAL DEL NODO:\t" << cota_local << endl;
-
+    /*
     for (int i = 1; i < NUM_NODOS; ++i){
         bool factible = true;
         int nodo = i;
@@ -182,7 +274,7 @@ int main (int argc, char * argv []) {
         while (factible) {
 
         }
-    }
+    }*/
 
 
 
