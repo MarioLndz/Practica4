@@ -23,6 +23,12 @@ void ReduceFilas(vector<vector<int>> & reducida, vector<int> & minimo_fila, int 
             if (reducida[i][j]!=(-1) && reducida[i][j] < min)
                 min = reducida[i][j];
         }
+        if(min==100) {// en el caso de que todos sean -1
+            minimo_fila[i] = 0;
+        }
+        else{
+            minimo_fila[i]=min;  // vamos guardando el minimo de columna en el vector minimo
+        }
 
         minimo_fila[i] = min;  // vamos guardando el minimo de fila en el vector minimo
     }
@@ -48,7 +54,14 @@ void ReduceColumnas(vector<vector<int>> & reducida, vector<int> & minimo_col, in
             if(reducida[j][i]!=(-1) && reducida[j][i]<min)
                 min=reducida[j][i];
         }
-        minimo_col[i]=min;  // vamos guardando el minimo de columna en el vector minimo
+        if(min==100) {
+            minimo_col[i] = 0;
+        }
+        else{
+            minimo_col[i]=min;  // vamos guardando el minimo de columna en el vector minimo
+        }
+
+
     }
 
     // restamos el valor minimo de cada columna a dicha columna
@@ -71,7 +84,7 @@ void EliminaFilayColumna(vector<vector<int>> & reducida, int fila, int columna, 
     for (int i = 0; i < num_nodos; ++i) {
         reducida[i][columna]=-1;
     }
-    reducida[columna][fila];
+    reducida[columna][fila]=-1;
 }
 
 int main (int argc, char * argv []) {
@@ -184,11 +197,20 @@ int main (int argc, char * argv []) {
         cout << endl;
     }
 
-    cout << endl << endl << "COSTE:" << coste_reducida;
+    cout << endl << endl << "COSTE:" << coste_reducida << endl << endl;
 
 
     // tenemos que elegir cual será el siguiente nodo al que vayamos y para ello tendremos que ir
     // considerando todos los nodos restantes uno a uno
+
+    vector<vector<vector<int>>> matrices_reducidas (NUM_NODOS);
+    for (int i = 0; i < NUM_NODOS; ++i) {
+        for(int j=0;j<NUM_NODOS;j++) {
+            matrices_reducidas[i][j].reserve(NUM_NODOS);
+        }
+    }
+
+    vector<int> costes(NUM_NODOS);
 
     for(int i=1;i<NUM_NODOS;++i){   // buble para pasar por todos los nodos restantes, empezamos desde 1
 
@@ -196,15 +218,46 @@ int main (int argc, char * argv []) {
         // posteirormente realizar la reducción por filas y por columnas
 
         vector<vector<int>> reducida2(NUM_NODOS);
-        for (int i = 0; i < NUM_NODOS; ++i) {
-            reducida2[i].reserve(NUM_NODOS);
+        for (int z = 0; z < NUM_NODOS; ++z) {
+            reducida2[z].reserve(NUM_NODOS);  // aquí da problemas
+        }
+        cout << "p";
+        for (int z = 0; z < NUM_NODOS; ++z)
+            for (int j = 0; j < NUM_NODOS; ++j)
+                reducida2[z][j]=reducida[z][j];
+
+        EliminaFilayColumna(reducida2,0,i,NUM_NODOS);
+
+        vector<int> minimo_fila2 (NUM_NODOS);   // vamos a guadar el minimo de todas las filas
+        ReduceColumnas(reducida2,minimo_fila2,NUM_NODOS);
+
+        vector<int> minimo_col2 (NUM_NODOS);   // vamos a guadar el minimo de todas las columnas
+        ReduceColumnas(reducida2,minimo_col2,NUM_NODOS);
+
+        int coste_reducida2=0;
+        for(int z=0;z<NUM_NODOS;++z) {
+            coste_reducida2 += minimo_fila2[z];
+            coste_reducida2 += minimo_col2[z];
+        }
+        coste_reducida2 += coste_reducida;
+        coste_reducida2 += reducida[0][i];
+
+
+
+        for(int z=0;z<NUM_NODOS-1;++z){
+            for(int j=0;j<NUM_NODOS-1;++j){
+                matrices_reducidas[i-1][z][j]=reducida2[z][j];
+            }
         }
 
-        for (int i = 0; i < NUM_NODOS; ++i)
-            for (int j = 0; j < NUM_NODOS; ++j)
-                reducida2[i][j]=reducida[i][j];
+        costes[i-1]=coste_reducida2;
 
+    }
 
+    // una vez tenemos todas las matrices y todos los costes nos tenemos que quedar con la que tenga menor coste
+
+    for(int i=0;i<NUM_NODOS-1;++i){
+        cout << costes[i] << "\t";
     }
 
 
