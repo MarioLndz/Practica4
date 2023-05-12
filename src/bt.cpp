@@ -220,9 +220,11 @@ private:
     int CalculaCoste () const {
         int coste = 0;
         for (int i = 0; i < NUM_NODOS-1; ++i){
+            //cout << distancias[solucion.at(i)][solucion.at(i+1)] << " + ";
             coste += distancias[solucion.at(i)][solucion.at(i+1)];
         }
         coste += distancias[solucion.back()][0];
+        //cout << distancias[solucion.back()][0] << " = " << coste << endl;
 
         return (coste);
     }
@@ -242,9 +244,9 @@ int main (int argc, char * argv []) {
 
     BT backtracking (argv[1]);
 
-    backtracking.PintaDistancias();
-    backtracking.PintaSalidasMinimas();
-    cout << "COTA GLOBAL INICIAL (GREEDY):\t" << backtracking.GetCotaGlobal() << endl;
+    //backtracking.PintaDistancias();
+    //backtracking.PintaSalidasMinimas();
+    //cout << "COTA GLOBAL INICIAL (GREEDY):\t" << backtracking.GetCotaGlobal() << endl;
 
     backtracking.pvc2();
 
