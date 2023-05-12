@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <chrono>
 #include <random>
+#include <set>
 
 using namespace std;
 
@@ -44,7 +45,7 @@ pair<vector<int>, int> Greedy (const vector<vector<int>>& distancias, vector<boo
 class BT{
 private:
     int NUM_NODOS;
-    vector<bool> ya_pertenece;
+    set<int> sin_visitar;
 
     vector<vector<int>> distancias;
     vector<int> solucion;
@@ -91,18 +92,18 @@ public:
         file.close();
 
         // Siempre partimos de la ciudad 0
+        //solucion.push_back(0);
+        //sin_visitar.erase(0);
+
+        vector<bool> ya_pertenece (NUM_NODOS);
         ya_pertenece.at(0) = true;
-        solucion.push_back(0);
 
         CalculaSalidasMinimas();
 
         pair<vector<int>, int> sol_greedy = Greedy (distancias, ya_pertenece, NUM_NODOS);
         COTA_GLOBAL = sol_greedy.second;
+        solucion = sol_greedy.first;
 
-    }
-
-    int GetSize (){
-        return (NUM_NODOS);
     }
 
     int GetCotaGlobal () {
@@ -110,7 +111,7 @@ public:
     }
 
     void PintaDistancias () const {
-        cout << "MATRIZ DE DISTANCIAS:\t";
+        cout << "MATRIZ DE DISTANCIAS:\n";
         for (int i = 0; i < NUM_NODOS; ++i){
             for (int j = 0; j < NUM_NODOS; ++j){
                 cout << distancias[i][j] << "\t";
@@ -127,18 +128,70 @@ public:
         cout << endl;
     }
 
-    void IniciaComp (int k){
-        
+    void PintaSolucion(int coste=-1) const {
+        if (coste == -1){
+            coste = CalculaCoste();
+        }
+
+        cout << "SOLUCION:\t[\t";
+        for (int i = 0; i < NUM_NODOS; ++i){
+            cout << solucion.at(i) << "\t";
+        }
+        cout << "]\tCoste: " << coste << endl;
+    }
+
+    void pvc2 (){
+        vector<int> solucion_aux;
+        pvc2(0, solucion_aux);
+    }
+    void pvc2 (int k, vector<int> & solucion_aux, int coste=0){
+        sin_visitar.erase(k);
+        solucion_aux.push_back(k);
+
+        if (sin_visitar.empty()){
+            coste += distancias[k][0];
+            if (coste < COTA_GLOBAL){
+                COTA_GLOBAL = coste;
+                solucion = solucion_aux;
+                //PintaSolucion(coste);
+            }
+        } else {
+            int cota_local = CotaLocal2(coste);
+            if (cota_local < COTA_GLOBAL){
+                set<int> sin_visitar_aux = sin_visitar;
+
+                for (auto it = sin_visitar_aux.begin(); it != sin_visitar_aux.end(); ++it){
+                    coste += distancias[k][*it];
+                    pvc2(*it, solucion_aux, coste);
+
+                    coste -= distancias[k][*it];
+                    sin_visitar.insert(*it);
+                    solucion_aux.pop_back();
+                }
+            }
+        }
+    }
+
+    int CotaLocal2 (int coste){
+        coste += GetSalidaMinima(solucion.back());
+        for (auto it = sin_visitar.begin(); it != sin_visitar.end(); ++it){
+            coste += GetSalidaMinima(*it);
+        }
+
+        return (coste);
+    }
+
+    int GetSalidaMinima (int k){
+        return (distancias[k][salidas_minimas.at(k)]);
     }
 
 private:
     void reservaMemoria (const int & nodos){
         distancias.resize(nodos);
-        ya_pertenece.resize(nodos);
 
         for (int i = 0; i < nodos; ++i){
             distancias[i].resize(nodos);
-            ya_pertenece.at(i) = false;
+            sin_visitar.insert(i);
         }
     }
 
@@ -163,8 +216,17 @@ private:
             salidas_minimas.push_back(SalidaMinima(distancias[i], NUM_NODOS));
         }
     }
-};
 
+    int CalculaCoste () const {
+        int coste = 0;
+        for (int i = 0; i < NUM_NODOS-1; ++i){
+            coste += distancias[solucion.at(i)][solucion.at(i+1)];
+        }
+        coste += distancias[solucion.back()][0];
+
+        return (coste);
+    }
+};
 // https://code-with-me.global.jetbrains.com/xD3Sv4W8E5CUM3YfIP-yzQ#p=CL&fp=0B1879F530729FEAB4D59B9AF4A2A51073F71AE310EE667474671678948C5AAF
 
 // Video Indio:
@@ -178,105 +240,15 @@ int main (int argc, char * argv []) {
         exit(-1);
     }
 
-    ifstream file;
-    file.open(argv[1]);
-
-    if (!file){
-        cout << "ERROR ABRIENDO EL ARCHIVO" << endl;
-        exit(-1);
-    }
-
-    int nodos_aux;
-    file >> nodos_aux;
-
-    const int NUM_NODOS = nodos_aux;
-
-    vector<vector<int>> distancias (NUM_NODOS);
-    for (int i = 0; i < NUM_NODOS; ++i){
-        distancias[i].reserve(NUM_NODOS);
-    }
-
-    vector<bool> ya_pertenece(NUM_NODOS);
-
-    for (int i = 0; i < NUM_NODOS; ++i) {
-        for (int j = 0; j < NUM_NODOS; ++j) {
-            int num;
-            file >> num;
-
-            distancias[i][j] = num;
-        }
-        ya_pertenece[i] = false;
-    }
-
-    file.close();
-
     BT backtracking (argv[1]);
 
-    ya_pertenece[0]=true; // marco el primer nodo como visitado, pues empezamos desde ahí
-    /*
-    for (int i = 0; i < NUM_NODOS; ++i){
-        for (int j = 0; j < NUM_NODOS; ++j){
-            cout << distancias[i][j] << "\t";
-        }
-        cout << endl;
-    }*/
     backtracking.PintaDistancias();
     backtracking.PintaSalidasMinimas();
     cout << "COTA GLOBAL INICIAL (GREEDY):\t" << backtracking.GetCotaGlobal() << endl;
 
-    // ------------- ALGORITMO GREEDY ------------- //
-    //pair<vector<int>, int> sol_greedy = Greedy(distancias, ya_pertenece, NUM_NODOS);
+    backtracking.pvc2();
 
-    //int cota_global = sol_greedy.second;
-
-    /*
-    for (auto it = sol_greedy.first.begin(); it != sol_greedy.first.end(); ++it){
-        cout << *it << "\t";
-    }
-    cout << endl;
-     */
-
-    //cout << "COTA GLOBAL INICIAL:\t"<< cota_global << endl;
-
-
-    /*
-    // ------------- BACKTRACKING ------------- //
-    vector<int> solucion;
-
-    vector<int> solucion_aux;
-    solucion_aux.push_back(0);
-    ya_pertenece[0] = true;
-
-    int nodo_actual = 1;
-    solucion_aux.push_back(nodo_actual);
-    ya_pertenece[1] = true;
-
-    int cota_local = 0;
-    int num_soluciones = solucion_aux.size()-1;
-
-    // Sumamos las distancias de los nodos ya elegidos
-    for (int i = 0; i < num_soluciones; ++i){
-        cota_local += distancias[solucion_aux.at(i)][solucion_aux.at(i+1)];
-    }
-
-    // Coste mínimo de las salidas de cada nodo
-    cota_local += salidas_minimas[nodo_actual]; //Salir del nodo actual
-    for (int i = 1; i < NUM_NODOS; ++i){        // Salir del resto de nodos
-        if (!ya_pertenece[i]){
-            cota_local += salidas_minimas[i];
-        }
-    }
-    cout << "COTA LOCAL DEL NODO:\t" << cota_local << endl;
-    /*
-    for (int i = 1; i < NUM_NODOS; ++i){
-        bool factible = true;
-        int nodo = i;
-
-        while (factible) {
-
-        }
-    }*/
-
+    backtracking.PintaSolucion();
 
 
     return (0);
