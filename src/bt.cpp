@@ -128,7 +128,7 @@ public:
     }
 
     void IniciaComp (int k){
-
+        
     }
 
 private:
@@ -164,7 +164,8 @@ private:
         }
     }
 };
-// https://code-with-me.global.jetbrains.com/ZU3t2oYIEaHkkUu93N6O4A#p=CL&fp=CB515FAE1B2D2DAA042E8BA8B33919512C260C42B173BA51B3B9384B16885C49
+
+// https://code-with-me.global.jetbrains.com/xD3Sv4W8E5CUM3YfIP-yzQ#p=CL&fp=0B1879F530729FEAB4D59B9AF4A2A51073F71AE310EE667474671678948C5AAF
 
 // Video Indio:
 
