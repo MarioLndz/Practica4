@@ -249,7 +249,6 @@ int main (int argc, char * argv []) {
     //cout << "COTA GLOBAL INICIAL (GREEDY):\t" << backtracking.GetCotaGlobal() << endl;
 
     backtracking.pvc2();
-
     backtracking.PintaSolucion();
 
 

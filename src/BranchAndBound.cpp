@@ -51,17 +51,35 @@ private:
 
     vector<int> salidas_minimas;
 
-    priority_queue<int, vector<int>, greater<>> caminos;
-
     struct nodo {
         vector<int> solucion;
         set<int> sin_visitar;
         int coste;
+
+        nodo(){
+            coste = 0;
+        }
+
+        nodo(const vector<int> & la_solucion, const set<int> & los_sin_visitar, int el_coste){
+            solucion = la_solucion;
+            sin_visitar = los_sin_visitar;
+            coste = el_coste;
+        }
+
+        int NodosVisitados () const{
+            return (solucion.size());
+        }
+
+        bool operator< (const nodo & otro) const {
+            return (this->coste > otro.coste);
+        }
     };
 
     nodo origen;
 
     vector<int> solucion;
+
+    priority_queue<nodo> caminos;
 
 public:
     BB (){
@@ -100,7 +118,6 @@ public:
             }
 
             if (i != 0){
-                caminos.push(i);
                 set_origen.insert(i);
             }
 
@@ -108,9 +125,7 @@ public:
 
         file.close();
 
-        origen.sin_visitar = set_origen;
-        origen.solucion = vector<int>{0};
-        origen.coste = 0;
+        origen = nodo(vector<int>{0}, set_origen, 0);
 
         // Siempre partimos de la ciudad 0
         //solucion.push_back(0);
@@ -161,21 +176,39 @@ public:
         cout << "]\tCoste: " << coste << endl;
     }
 
-    void PintaDecisiones (){
-        auto aux = caminos;
-        int tamanio = aux.size();
+    void pvc2 () {
+        caminos.push(this->origen);
 
-        cout << "DECISIONES:\t[\t";
-        for (int i = 0; i < tamanio; ++i){
-            cout << aux.top() << "\t";
-            aux.pop();
+        while (!caminos.empty()){
+            nodo prometedor = caminos.top();
+            caminos.pop();
+
+            if (prometedor.sin_visitar.empty()){
+                prometedor.coste += distancias[prometedor.solucion.back()][0];
+
+                if (prometedor.coste < COTA_GLOBAL){
+                    solucion = prometedor.solucion;
+                    COTA_GLOBAL = prometedor.coste;
+                }
+
+            } else {
+                for (auto it = prometedor.sin_visitar.begin(); it != prometedor.sin_visitar.end(); ++it){
+                    nodo aux = prometedor;
+
+                    aux.sin_visitar.erase(*it);
+                    aux.solucion.push_back(*it);
+                    aux.coste += distancias[prometedor.solucion.back()][*it];
+
+                    int cota = CotaLocal2(aux);
+
+                    if (cota < COTA_GLOBAL){
+                        caminos.push(aux);
+                    }
+                }
+
+            }
+
         }
-        cout << "]" << endl;
-    }
-
-    void pvc () {
-
-
     }
 
     int CotaLocal2 (const nodo & n){
@@ -207,7 +240,6 @@ private:
         int indice_min = (fila[0] == -1) ? 1 : 0;
 
         for (int i = indice_min+1; i < NUM_NODOS; ++i){
-            //cout <<
             if (fila[i] != -1){   // Si no es la diagonal
                 if (fila[i] < fila[indice_min]){  // Nuevo minimo
                     indice_min = i;
@@ -259,7 +291,8 @@ int main (int argc, char * argv[]){
 
     BB branch_bound (argv[1]);
     branch_bound.PintaDistancias();
-    branch_bound.PintaDecisiones();
     branch_bound.PintaSalidasMinimas();
-    //branch_bound.pvc2();
+
+    branch_bound.pvc2();
+    branch_bound.PintaSolucion();
 }
