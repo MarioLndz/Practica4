@@ -42,7 +42,38 @@ pair<vector<int>, int> Greedy (const vector<vector<int>>& distancias, vector<boo
 
 }
 
-class BB{
+struct nodo {
+    vector<int> solucion;
+    set<int> sin_visitar;
+    int coste;
+
+    nodo(){
+        coste = 0;
+    }
+
+    nodo(const vector<int> & la_solucion, const set<int> & los_sin_visitar, int el_coste){
+        solucion = la_solucion;
+        sin_visitar = los_sin_visitar;
+        coste = el_coste;
+    }
+
+    int NodosVisitados () const{
+        return (solucion.size());
+    }
+
+    bool operator< (const nodo & otro) const {
+        return (this->coste > otro.coste);
+    }
+};
+
+
+struct Comparison {
+    bool operator() (const pair<nodo,int>& n1, const pair<nodo,int> & n2){
+        return (n1.second > n2.second);
+    }
+};
+
+class BB {
 private:
     int NUM_NODOS;
 
@@ -51,35 +82,14 @@ private:
 
     vector<int> salidas_minimas;
 
-    struct nodo {
-        vector<int> solucion;
-        set<int> sin_visitar;
-        int coste;
-
-        nodo(){
-            coste = 0;
-        }
-
-        nodo(const vector<int> & la_solucion, const set<int> & los_sin_visitar, int el_coste){
-            solucion = la_solucion;
-            sin_visitar = los_sin_visitar;
-            coste = el_coste;
-        }
-
-        int NodosVisitados () const{
-            return (solucion.size());
-        }
-
-        bool operator< (const nodo & otro) const {
-            return (this->coste > otro.coste);
-        }
-    };
-
     nodo origen;
 
     vector<int> solucion;
 
-    priority_queue<nodo> caminos;
+    priority_queue<pair<nodo,int>, vector<pair<nodo,int>>, Comparison> caminos;
+
+
+
 
 public:
     BB (){
@@ -177,10 +187,10 @@ public:
     }
 
     void pvc2 () {
-        caminos.push(this->origen);
+        caminos.push(pair<nodo,int>{this->origen, CotaLocal2(this->origen)});
 
         while (!caminos.empty()){
-            nodo prometedor = caminos.top();
+            nodo prometedor = caminos.top().first;
             caminos.pop();
 
             if (prometedor.sin_visitar.empty()){
@@ -202,7 +212,7 @@ public:
                     int cota = CotaLocal2(aux);
 
                     if (cota < COTA_GLOBAL){
-                        caminos.push(aux);
+                        caminos.push(pair<nodo,int>{aux,cota});
                     }
                 }
 
@@ -268,6 +278,7 @@ private:
 
         return (coste);
     }
+
 };
 
 // https://code-with-me.global.jetbrains.com/u4l7RQH69xtukLfXXqQLkw#p=CL&fp=B7CF77FD7E61CC6ADE27EBA1EF1E04CF3DE6AD42766C5FE2F8A2222907289AE9
