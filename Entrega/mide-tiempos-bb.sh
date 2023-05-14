@@ -3,7 +3,7 @@
 printf "" > dist_bb.dat
 
 i=10
-while [ "$i" -le 200 ]
+while [ "$i" -le 130 ]
 do
 	# Generamos los puntos	
 	./generador $i
