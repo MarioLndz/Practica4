@@ -5,8 +5,11 @@
 #include <vector>
 #include <set>
 #include <fstream>
+#include <chrono>
+#include <random>
 #include <queue>
 using namespace std;
+using namespace std::chrono;
 
 pair<vector<int>, int> Greedy (const vector<vector<int>>& distancias, vector<bool> ya_pertenece, const int NUM_NODOS){
     vector<int> visita;
@@ -149,6 +152,10 @@ public:
 
     }
 
+    int getNumNodos() const{
+        return NUM_NODOS;
+    }
+
     int GetCotaGlobal () const {
         return (COTA_GLOBAL);
     }
@@ -289,10 +296,19 @@ int main (int argc, char * argv[]){
     }
 
     BB branch_bound (argv[1]);
+    const int NODOS = branch_bound.getNumNodos();
 
     //branch_bound.PintaDistancias();
     //branch_bound.PintaSalidasMinimas();
 
+    high_resolution_clock::time_point t_antes, t_despues;
+    duration<double> transcurrido;
+    t_antes = high_resolution_clock::now();
+
     branch_bound.pvc2();
+
+    t_despues = high_resolution_clock::now();
+    transcurrido = duration_cast<duration<double>> (t_despues - t_antes);
+    cout << NODOS << "\t" << transcurrido.count() << endl;
     //branch_bound.PintaSolucion();
 }
