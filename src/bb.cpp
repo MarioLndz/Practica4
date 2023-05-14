@@ -88,9 +88,6 @@ private:
 
     priority_queue<pair<nodo,int>, vector<pair<nodo,int>>, Comparison> caminos;
 
-
-
-
 public:
     BB (){
         NUM_NODOS = 0;
@@ -202,17 +199,19 @@ public:
                 }
 
             } else {
-                for (auto it = prometedor.sin_visitar.begin(); it != prometedor.sin_visitar.end(); ++it){
-                    nodo aux = prometedor;
+                if (prometedor.coste < COTA_GLOBAL){
+                    for (auto it = prometedor.sin_visitar.begin(); it != prometedor.sin_visitar.end(); ++it){
+                        nodo aux = prometedor;
 
-                    aux.sin_visitar.erase(*it);
-                    aux.solucion.push_back(*it);
-                    aux.coste += distancias[prometedor.solucion.back()][*it];
+                        aux.sin_visitar.erase(*it);
+                        aux.solucion.push_back(*it);
+                        aux.coste += distancias[prometedor.solucion.back()][*it];
 
-                    int cota = CotaLocal2(aux);
+                        int cota = CotaLocal2(aux);
 
-                    if (cota < COTA_GLOBAL){
-                        caminos.push(pair<nodo,int>{aux,cota});
+                        if (cota < COTA_GLOBAL){
+                            caminos.push(pair<nodo,int>{aux,cota});
+                        }
                     }
                 }
 
@@ -295,5 +294,5 @@ int main (int argc, char * argv[]){
     //branch_bound.PintaSalidasMinimas();
 
     branch_bound.pvc2();
-    branch_bound.PintaSolucion();
+    //branch_bound.PintaSolucion();
 }

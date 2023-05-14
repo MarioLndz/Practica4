@@ -264,7 +264,7 @@ int main (int argc, char * argv []) {
     transcurrido = duration_cast<duration<double>> (t_despues - t_antes);
     cout << NODOS << "\t" << transcurrido.count() << endl;
 
-    // backtracking.PintaSolucion();
+    //backtracking.PintaSolucion();
 
 
     return (0);
