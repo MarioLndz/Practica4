@@ -7,6 +7,7 @@
 #include <set>
 
 using namespace std;
+using namespace std::chrono;
 
 pair<vector<int>, int> Greedy (const vector<vector<int>>& distancias, vector<bool> ya_pertenece, const int NUM_NODOS){
     vector<int> visita;
@@ -62,6 +63,10 @@ public:
 
     BT (const char filename []){
         load(filename);
+    }
+
+    int getNumNodos() const{
+        return NUM_NODOS;
     }
 
     void load (const char filename[]){
@@ -243,13 +248,23 @@ int main (int argc, char * argv []) {
     }
 
     BT backtracking (argv[1]);
+    const int NODOS = backtracking.getNumNodos();
 
     //backtracking.PintaDistancias();
     //backtracking.PintaSalidasMinimas();
     //cout << "COTA GLOBAL INICIAL (GREEDY):\t" << backtracking.GetCotaGlobal() << endl;
 
+    high_resolution_clock::time_point t_antes, t_despues;
+    duration<double> transcurrido;
+    t_antes = high_resolution_clock::now();
+
     backtracking.pvc2();
-    backtracking.PintaSolucion();
+
+    t_despues = high_resolution_clock::now();
+    transcurrido = duration_cast<duration<double>> (t_despues - t_antes);
+    cout << NODOS << "\t" << transcurrido.count() << endl;
+
+    // backtracking.PintaSolucion();
 
 
     return (0);
