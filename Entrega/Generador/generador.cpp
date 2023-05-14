@@ -14,7 +14,7 @@ int main (int argc, char * argv[]){
 
     int aux = atoi(argv[1]);
     const int NUM_CASOS = aux;
-    string fichero = argc == 2 ? "data_pvc.txt" : argv[2];
+    string fichero = argc == 2 ? "data.txt" : argv[2];
 
     srandom(time(NULL));
     std::random_device rd;

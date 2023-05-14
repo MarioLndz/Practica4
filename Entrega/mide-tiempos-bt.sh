@@ -6,7 +6,7 @@ i=10
 while [ "$i" -le 130 ]
 do
 	# Generamos los puntos	
-	./generador $i
+	./generador $i data_bt.txt
 	printf "PUNTOS GENERADOS\t"
   	
 	# Ejecutamos los puntos
