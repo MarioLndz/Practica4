@@ -2,8 +2,8 @@
 #echo "" >> salida.dat
 printf "" > dist_bt.dat
 
-i=10
-while [ "$i" -le 130 ]
+i=1
+while [ "$i" -le 15 ]
 do
 	# Generamos los puntos	
 	./generador $i data_bt.txt
@@ -14,5 +14,5 @@ do
 
 	echo "Terminado $i" 
 	
-	i=$(( $i + 5 ))
+	i=$(( $i + 1 ))
 done
