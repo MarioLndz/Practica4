@@ -54,6 +54,7 @@ private:
     int COTA_GLOBAL;
 
     vector<int> salidas_minimas;
+    int minimo_coste;
 
 public:
     BT (){
@@ -105,6 +106,13 @@ public:
 
         CalculaSalidasMinimas();
 
+        minimo_coste = distancias[0][salidas_minimas.at(0)];
+        for (int i = 1; i < NUM_NODOS; ++i){
+            if (minimo_coste > distancias[i][salidas_minimas.at(i)]){
+                minimo_coste = distancias[i][salidas_minimas.at(i)];
+            }
+        }
+
         pair<vector<int>, int> sol_greedy = Greedy (distancias, ya_pertenece, NUM_NODOS);
         COTA_GLOBAL = sol_greedy.second;
         solucion = sol_greedy.first;
@@ -145,10 +153,51 @@ public:
         cout << "]\tCoste: " << coste << endl;
     }
 
-    void pvc2 (){
+    void pvc(int cota){
         vector<int> solucion_aux;
-        pvc2(0, solucion_aux);
+        if (cota == 1){
+            pvc1(0, solucion_aux);
+        } else if (cota == 2){
+            pvc2(0, solucion_aux);
+        }
     }
+
+    void pvc1 (int k, vector<int> & solucion_aux, int coste=0){
+        sin_visitar.erase(k);
+        solucion_aux.push_back(k);
+
+        if (sin_visitar.empty()){
+            coste += distancias[k][0];
+            if (coste < COTA_GLOBAL){
+                COTA_GLOBAL = coste;
+                solucion = solucion_aux;
+                PintaSolucion(coste);
+            }
+        } else {
+            int cota_local = CotaLocal1(coste);
+            if (cota_local < COTA_GLOBAL){
+                set<int> sin_visitar_aux = sin_visitar;
+
+                for (auto it = sin_visitar_aux.begin(); it != sin_visitar_aux.end(); ++it){
+                    coste += distancias[k][*it];
+                    pvc2(*it, solucion_aux, coste);
+
+                    coste -= distancias[k][*it];
+                    sin_visitar.insert(*it);
+                    solucion_aux.pop_back();
+                }
+            }
+        }
+    }
+
+    int CotaLocal1 (int coste){
+        int num_nodos_sin_visitar = sin_visitar.size();
+
+        coste += minimo_coste*num_nodos_sin_visitar;
+
+        return (coste);
+    }
+
     void pvc2 (int k, vector<int> & solucion_aux, int coste=0){
         sin_visitar.erase(k);
         solucion_aux.push_back(k);
@@ -204,7 +253,6 @@ private:
         int indice_min = (fila[0] == -1) ? 1 : 0;
 
         for (int i = indice_min+1; i < NUM_NODOS; ++i){
-            //cout <<
             if (fila[i] != -1){   // Si no es la diagonal
                 if (fila[i] < fila[indice_min]){  // Nuevo minimo
                     indice_min = i;
@@ -258,7 +306,7 @@ int main (int argc, char * argv []) {
     duration<double> transcurrido;
     t_antes = high_resolution_clock::now();
 
-    backtracking.pvc2();
+    backtracking.pvc(2);
 
     t_despues = high_resolution_clock::now();
     transcurrido = duration_cast<duration<double>> (t_despues - t_antes);

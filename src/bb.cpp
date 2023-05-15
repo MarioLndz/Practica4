@@ -84,6 +84,7 @@ private:
     int COTA_GLOBAL;
 
     vector<int> salidas_minimas;
+    int minimo_coste;
 
     nodo origen;
 
@@ -146,6 +147,14 @@ public:
 
         CalculaSalidasMinimas();
 
+        minimo_coste = distancias[0][salidas_minimas.at(0)];
+        for (int i = 1; i < NUM_NODOS; ++i){
+            if (minimo_coste > distancias[i][salidas_minimas.at(i)]){
+                minimo_coste = distancias[i][salidas_minimas.at(i)];
+            }
+        }
+
+
         pair<vector<int>, int> sol_greedy = Greedy (distancias, ya_pertenece, NUM_NODOS);
         COTA_GLOBAL = sol_greedy.second;
         solucion = sol_greedy.first;
@@ -188,6 +197,60 @@ public:
             cout << solucion.at(i) << "\t";
         }
         cout << "]\tCoste: " << coste << endl;
+    }
+
+    void pvc (int cota){
+        if (cota == 1){
+            pvc1();
+        } else if (cota == 2){
+            pvc2();
+        }
+    }
+
+    void pvc1(){
+        caminos.push(pair<nodo,int>{this->origen, CotaLocal2(this->origen)});
+
+        while (!caminos.empty()){
+            nodo prometedor = caminos.top().first;
+            caminos.pop();
+
+            if (prometedor.sin_visitar.empty()){
+                prometedor.coste += distancias[prometedor.solucion.back()][0];
+
+                if (prometedor.coste < COTA_GLOBAL){
+                    solucion = prometedor.solucion;
+                    COTA_GLOBAL = prometedor.coste;
+                }
+
+            } else {
+                if (prometedor.coste < COTA_GLOBAL){
+                    for (auto it = prometedor.sin_visitar.begin(); it != prometedor.sin_visitar.end(); ++it){
+                        nodo aux = prometedor;
+
+                        aux.sin_visitar.erase(*it);
+                        aux.solucion.push_back(*it);
+                        aux.coste += distancias[prometedor.solucion.back()][*it];
+
+                        int cota = CotaLocal1(aux);
+
+                        if (cota < COTA_GLOBAL){
+                            caminos.push(pair<nodo,int>{aux,cota});
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    int CotaLocal1(const nodo & n) const{
+        int coste = n.coste;
+        int num_nodos_sin_visitar = n.sin_visitar.size();
+
+        coste += (minimo_coste*num_nodos_sin_visitar);
+
+        return (coste);
     }
 
     void pvc2 () {
@@ -287,8 +350,6 @@ private:
 
 };
 
-// https://code-with-me.global.jetbrains.com/u4l7RQH69xtukLfXXqQLkw#p=CL&fp=B7CF77FD7E61CC6ADE27EBA1EF1E04CF3DE6AD42766C5FE2F8A2222907289AE9
-
 int main (int argc, char * argv[]){
     if (argc != 2) {
         cout << "NUMERO INCORRECTO DE ARGUMENTOS" << endl;
@@ -305,10 +366,13 @@ int main (int argc, char * argv[]){
     duration<double> transcurrido;
     t_antes = high_resolution_clock::now();
 
-    branch_bound.pvc2();
+    //branch_bound.PintaDistancias();
+
+    branch_bound.pvc(2);
 
     t_despues = high_resolution_clock::now();
     transcurrido = duration_cast<duration<double>> (t_despues - t_antes);
     cout << NODOS << "\t" << transcurrido.count() << endl;
+
     //branch_bound.PintaSolucion();
 }
